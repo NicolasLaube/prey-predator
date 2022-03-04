@@ -91,13 +91,20 @@ class WolfSheep(Model):
         )
 
         # Create sheep:
-        # ... to be completed
+        for sheep_id in range(initial_sheep):
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            Sheep(sheep_id, (x, y), self, )
 
         # Create wolves
-        # ... to be completed
-
+        for wolf_id in range(initial_wolves):
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            Wolf(wolf_id, (x, y), self, )
         # Create grass patches
-        # ... to be completed
+        for i in range(self.width):
+            for j in range(self.height):
+                GrassPatch(i * (j -1) + j, (i, j), self, True, grass_regrowth_time)
 
     def step(self):
         self.schedule.step()
