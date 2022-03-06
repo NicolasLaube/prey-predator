@@ -1,9 +1,9 @@
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
-from mesa.visualization.UserParam import UserSettableParameter
 
 from prey_predator.agents import Wolf, Sheep, GrassPatch
 from prey_predator.model import WolfSheep
+from prey_predator.utils import Sex
 
 
 def combine_hex_values(color1, color2, proportion):
@@ -28,12 +28,21 @@ def wolf_sheep_portrayal(agent):
         return {
             "Shape": "./prey_predator/images/sheep.png",
             "Layer": 1,
+            "scale": agent.size
         }
     if type(agent) is Wolf:
-        return {
-            "Shape": "./prey_predator/images/wolf.png",
-            "Layer": 2,
-        }
+        if agent.sex == Sex.Male:
+            return {
+                "Shape": "./prey_predator/images/wolf.png",
+                "Layer": 2,
+                "scale": agent.size
+            }
+        else:
+            return {
+                "Shape": "./prey_predator/images/shewolf.png",
+                "Layer": 2,
+                "scale": agent.size
+            }
 
     if type(agent) is GrassPatch:
         portrayal = {
@@ -45,7 +54,7 @@ def wolf_sheep_portrayal(agent):
             "h": 1,
         }
         portrayal["Color"] = combine_hex_values(
-            "#2da501", "#f2ff74", 1 - agent.time_before_fully_grown / agent.countdown
+            "#2da501", "#e1ad01", agent.fully_grown
         )
         return portrayal
 
@@ -61,8 +70,8 @@ model_params = {
     "moore": True,
     "initial_sheep": 100,
     "initial_wolves": 50,
-    "sheep_reproduce": 0.5,
-    "wolf_reproduce": 0.05,
+    "sheep_reproduce": 0.8,
+    "wolf_reproduce": 0.03,
     "wolf_gain_from_food": 20,
     "grass": False,
     "grass_regrowth_time": 30,

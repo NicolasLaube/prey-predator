@@ -8,13 +8,14 @@ Replication of the model found in NetLogo:
     Center for Connected Learning and Computer-Based Modeling,
     Northwestern University, Evanston, IL.
 """
-
+import random
 from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
 from prey_predator.agents import Sheep, Wolf, GrassPatch
 from prey_predator.schedule import RandomActivationByBreed
+from prey_predator.utils import Sex
 
 
 class WolfSheep(Model):
@@ -85,50 +86,58 @@ class WolfSheep(Model):
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=True)
 
-        current_nb_agents = 0
+
+        self.current_nb_agents = 0
         # Create sheep:
         for _ in range(initial_sheep):
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
+            x, y = self.grid.find_empty()
+            size = random.random() * 0.5 + 0.5
+            sex = Sex.Male if bool(random.getrandbits(1)) else Sex.Female
+
             sheep = Sheep(
-                current_nb_agents,
+                self.current_nb_agents,
                 (x, y),
                 self,
                 moore,
                 sheep_reproduce,
                 sheep_gain_from_food,
                 6,
+                size,
+                sex
             )
             self.schedule.add(sheep)
             self.grid.place_agent(sheep, (x, y))
-            current_nb_agents += 1
+            self.current_nb_agents += 1
 
         # Create wolves
         for _ in range(initial_wolves):
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
+            x, y = self.grid.find_empty()
+            size = random.random() * 0.5 + 0.5
+            sex = Sex.Male if bool(random.getrandbits(1)) else Sex.Female
             wolf = Wolf(
-                current_nb_agents,
+                self.current_nb_agents,
                 (x, y),
                 self,
                 moore,
                 wolf_reproduce,
                 wolf_gain_from_food,
                 6,
+                size,
+                sex
             )
             self.schedule.add(wolf)
             self.grid.place_agent(wolf, (x, y))
-            current_nb_agents += 1
+            self.current_nb_agents += 1
 
         # Create grass patches
         for x in range(self.width):
             for y in range(self.height):
                 grass = GrassPatch(
-                    current_nb_agents, (x, y), self, True, grass_regrowth_time
+                    self.current_nb_agents, (x, y), self, True, grass_regrowth_time
                 )
                 self.schedule.add(grass)
                 self.grid.place_agent(grass, (x, y))
-                current_nb_agents += 1
+                self.current_nb_agents += 1
 
         self.datacollector = DataCollector(
             {
@@ -142,7 +151,6 @@ class WolfSheep(Model):
         # Collect data
         self.schedule.step()
         self.datacollector.collect(self)
-        print(self.schedule._agents)
 
     def run_model(self, step_count=200):
         for _ in range(step_count):

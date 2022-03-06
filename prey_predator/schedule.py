@@ -34,7 +34,6 @@ class RandomActivationByBreed(RandomActivation):
         """
         Remove all instances of a given agent from the schedule.
         """
-        print(self._agents)
         del self._agents[agent.unique_id]
 
         agent_class = type(agent)

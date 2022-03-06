@@ -1,7 +1,8 @@
 from typing import Tuple
+import random
 from mesa import Agent, Model
 from prey_predator.random_walk import RandomWalker
-
+from prey_predator.utils import Sex
 
 class Sheep(RandomWalker):
     """
@@ -21,6 +22,8 @@ class Sheep(RandomWalker):
         reproduction_probability,
         gain_from_food,
         energy,
+        size,
+        sex
     ):
         super().__init__(unique_id, pos, model, moore=moore)
         self.reproduction_probability = reproduction_probability
@@ -31,33 +34,97 @@ class Sheep(RandomWalker):
         self.model = model
         self.moore = moore
 
+        self.size = size
+        self.sex = sex
+
     def step(self):
         """
         A model step. Move, then eat grass and reproduce.
         """
-        self.random_move()
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
+
+        if self.has_grown_up_sheep(cellmates):
+            if self.random.random() <= self.reproduction_probability:
+                self.reproduce()
+            else:
+                self.choose_move()
+        else:
+            self.choose_move()
+        self.update_energy()
+
+    def has_grown_up_sheep(self, cellmates) -> bool:
+        """Says if cell contains other wolves"""
+        for cellmate in cellmates:
+            if type(cellmate) is Sheep and cellmate.unique_id != self.unique_id and cellmate.size == 1:
+                return True
+        return False
+
+    
+    def choose_move(self):
+        """Choose a move"""
+        neighboring_cells = self.model.grid.get_neighborhood(self.pos, self.moore, include_center=True)
+                
+        candidate_cells = []
+
+        for cell_pos in neighboring_cells:
+            cell_agents = self.model.grid.get_cell_list_contents(cell_pos)
+            add_cell = True
+            cell_score = 0
+
+            for agent in cell_agents:
+                if type(agent) is Wolf:
+                    add_cell = False
+                if type(agent) is Sheep and self.unique_id != self.unique_id and agent.size == 1:
+                    # condition prevents staying staying on center
+                    cell_score += 1
+                elif type(agent) is GrassPatch:
+                    cell_score += agent.fully_grown
+            if add_cell:
+                candidate_cells.append((cell_pos, cell_score))
+        random.shuffle(candidate_cells)
+        candidate_cells = sorted(candidate_cells, key=lambda x: x[1])
+
+        self.model.grid.move_agent(self, candidate_cells[-1][0])
+    
+    def reproduce(self):
+        """Sheep reproduction"""
+        self.model.current_nb_agents += 1
+        sex = Sex.Male if bool(random.getrandbits(1)) else Sex.Female
+
+
+        sheep_cub = Sheep(
+            self.model.current_nb_agents,
+            self.pos,
+            self.model,
+            self.moore,
+            self.reproduction_probability,
+            self.gain_from_food,
+            energy=6,
+            size=0.5,
+            sex=sex
+        )
+        self.model.schedule.add(sheep_cub)
+        self.model.grid.place_agent(sheep_cub, self.pos)
+        self.energy -= 1
+        print(f"Sheep cub born, id={self.model.current_nb_agents}")
+
+    def update_energy(self):
+        """Sheep energy update"""
+        self.size = min(self.size + 0.1, 1)
+
+        cellmates = self.model.grid.get_cell_list_contents([self.pos])
+
         for cellmate in cellmates:
             if type(cellmate) is GrassPatch and cellmate.fully_grown:
-                self.energy += self.gain_from_food
+                self.energy += self.gain_from_food * cellmate.fully_grown
                 cellmate.is_eaten()
                 break
-        if self.random.random() <= self.reproduction_probability:
-            sheep_cub = Sheep(
-                len(self.model.schedule.agents),
-                self.pos,
-                self.model,
-                self.moore,
-                self.reproduction_probability,
-                self.gain_from_food,
-                self.energy,
-            )
-            self.model.schedule.add(sheep_cub)
-            self.model.grid.place_agent(sheep_cub, self.pos)
         self.energy -= 1
-        if self.energy == 0:
+
+        if self.energy <= 0:
             self.model.grid.remove_agent(self)
             self.model.schedule.remove(self)
+        
 
 
 class Wolf(RandomWalker):
@@ -76,6 +143,8 @@ class Wolf(RandomWalker):
         reproduction_probability,
         gain_from_food,
         energy,
+        size,
+        sex
     ):
         super().__init__(unique_id, pos, model, moore=moore)
         self.energy = energy
@@ -85,34 +154,111 @@ class Wolf(RandomWalker):
         self.model = model
         self.pos = pos
         self.moore = moore
+        self.size = size
+
+        self.hunger = 1
+        self.hormones = 1
+        self.sex = sex
 
     def step(self):
-        self.random_move()
+        self.choose_move()
+        
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
+
+        if self.has_other_grown_up_wolf(cellmates):
+            # reproduce with certain probability or move
+            if self.random.random() <= self.reproduction_probability:
+                self.reproduce()
+            else:
+                self.choose_move()
+                self.hormones += 1
+        else:
+            self.choose_move()
+            self.hormones += 1
+
+        self.update_energy(cellmates)
+
+    def has_other_grown_up_wolf(self, cellmates) -> bool:
+        """Says if cell contains other wolves"""
+        for cellmate in cellmates:
+            if type(cellmate) is Wolf and cellmate.unique_id != self.unique_id and cellmate.size == 1 and self.sex != cellmate.sex:
+                return True
+        return False
+            
+        
+
+    def update_energy(self, cellmates):
+        """Update energy"""
+        self.size = min(self.size + 0.1, 1)
+
+
+        ate_something = False
         for cellmate in cellmates:
             if type(cellmate) is Sheep:
+                print(f"A sheep was eaten id={cellmate.unique_id} in pos={cellmate.pos}")
                 self.energy += self.gain_from_food
                 self.model.grid.remove_agent(cellmate)
                 self.model.schedule.remove(cellmate)
+                ate_something = True
                 break
-        print(self.energy)
-        if self.random.random() <= self.reproduction_probability:
-            wolf_cub = Wolf(
-                len(self.model.schedule.agents),
-                self.pos,
-                self.model,
-                self.moore,
-                self.reproduction_probability,
-                self.gain_from_food,
-                self.energy,
-            )
-            self.model.schedule.add(wolf_cub)
-            self.model.schedule.add(wolf_cub)
-            self.model.grid.place_agent(wolf_cub, self.pos)
+
+        if ate_something:
+            self.hunger = 0
+        else:
+            self.hunger += 1
+
         self.energy -= 1
-        if self.energy == 0:
+        if self.energy <= 0:
+            print(f"A wolf died id={self.unique_id} in pos={self.pos}")
             self.model.grid.remove_agent(self)
             self.model.schedule.remove(self)
+
+
+    def choose_move(self):
+        """Choose move"""
+        neighboring_cells = self.model.grid.get_neighborhood(self.pos, self.moore, include_center=True)
+                
+        candidate_cells = []
+
+        for cell_pos in neighboring_cells:
+            cell_agents = self.model.grid.get_cell_list_contents(cell_pos)
+            cell_score = 0
+
+            for agent in cell_agents:
+                if type(agent) is Wolf and agent.unique_id != self.unique_id and agent.size == 1 and self.sex != agent.sex:
+                    cell_score += self.hormones
+                if type(agent) is Sheep and self.energy < 10:
+                    cell_score += self.hunger * agent.size
+            candidate_cells.append((cell_pos, cell_score))
+
+        random.shuffle(candidate_cells)
+        candidate_cells = sorted(candidate_cells, key=lambda x: x[1])
+
+        self.model.grid.move_agent(self, candidate_cells[-1][0])
+
+    def reproduce(self):
+        """Reproduction of Wolf"""
+        self.model.current_nb_agents += 1
+        sex = Sex.Male if bool(random.getrandbits(1)) else Sex.Female
+
+
+        wolf_cub = Wolf(
+            self.model.current_nb_agents,
+            self.pos,
+            self.model,
+            self.moore,
+            self.reproduction_probability,
+            self.gain_from_food,
+            energy=6,
+            size=0.5,
+            sex=sex
+        )
+        self.model.schedule.add(wolf_cub)
+        self.model.grid.place_agent(wolf_cub, self.pos)
+        self.hormones = -1
+        self.energy -= 1
+        print(f"Wolf cub born, id={self.model.current_nb_agents}")
+
 
 
 class GrassPatch(Agent):
@@ -125,7 +271,7 @@ class GrassPatch(Agent):
         unique_id: int,
         pos: Tuple[int, int],
         model: Model,
-        fully_grown: bool,
+        fully_grown: float,
         countdown: int,
     ):
         """
@@ -134,6 +280,7 @@ class GrassPatch(Agent):
         Args:
             grown: (boolean) Whether the patch of grass is fully grown or not
             countdown: Time for the patch of grass to be fully grown again
+            fully_grown: between 0 and 1 (represents size of grass)
         """
         super().__init__(unique_id, model)
         self.unique_id = unique_id
@@ -141,14 +288,10 @@ class GrassPatch(Agent):
         self.model = model
         self.fully_grown = fully_grown
         self.countdown = countdown
-        self.time_before_fully_grown = 0
 
     def step(self):
-        if not self.fully_grown:
-            self.time_before_fully_grown -= 1
-            if self.time_before_fully_grown == 0:
-                self.fully_grown = True
+        """One setp for grass"""
+        self.fully_grown = min(self.fully_grown + 1/self.countdown, 1)
 
     def is_eaten(self):
-        self.fully_grown = False
-        self.time_before_fully_grown = self.countdown
+        self.fully_grown = 0
