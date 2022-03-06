@@ -85,7 +85,6 @@ class Wolf(RandomWalker):
         self.model = model
         self.pos = pos
         self.moore = moore
-        self.current_energy = self.energy
 
     def step(self):
         self.random_move()
@@ -96,6 +95,7 @@ class Wolf(RandomWalker):
                 self.model.grid.remove_agent(cellmate)
                 self.model.schedule.remove(cellmate)
                 break
+        print(self.energy)
         if self.random.random() <= self.reproduction_probability:
             wolf_cub = Wolf(
                 len(self.model.schedule.agents),
@@ -109,8 +109,8 @@ class Wolf(RandomWalker):
             self.model.schedule.add(wolf_cub)
             self.model.schedule.add(wolf_cub)
             self.model.grid.place_agent(wolf_cub, self.pos)
-        self.current_energy -= 1
-        if self.current_energy == 0:
+        self.energy -= 1
+        if self.energy == 0:
             self.model.grid.remove_agent(self)
             self.model.schedule.remove(self)
 

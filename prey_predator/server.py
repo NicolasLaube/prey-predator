@@ -56,12 +56,12 @@ chart_element = ChartModule(
 )
 
 model_params = {
-    "height": 4,
-    "width": 4,
+    "height": 20,
+    "width": 20,
     "moore": True,
-    "initial_sheep": 1,
-    "initial_wolves": 1,
-    "sheep_reproduce": 0.04,
+    "initial_sheep": 100,
+    "initial_wolves": 50,
+    "sheep_reproduce": 0.5,
     "wolf_reproduce": 0.05,
     "wolf_gain_from_food": 20,
     "grass": False,

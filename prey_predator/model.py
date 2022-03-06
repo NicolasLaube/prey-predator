@@ -90,7 +90,7 @@ class WolfSheep(Model):
         for _ in range(initial_sheep):
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
-            a = Sheep(
+            sheep = Sheep(
                 current_nb_agents,
                 (x, y),
                 self,
@@ -99,15 +99,15 @@ class WolfSheep(Model):
                 sheep_gain_from_food,
                 6,
             )
-            self.schedule.add(a)
-            self.grid.place_agent(a, (x, y))
+            self.schedule.add(sheep)
+            self.grid.place_agent(sheep, (x, y))
             current_nb_agents += 1
 
         # Create wolves
         for _ in range(initial_wolves):
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
-            a = Wolf(
+            wolf = Wolf(
                 current_nb_agents,
                 (x, y),
                 self,
@@ -116,18 +116,18 @@ class WolfSheep(Model):
                 wolf_gain_from_food,
                 6,
             )
-            self.schedule.add(a)
-            self.grid.place_agent(a, (x, y))
+            self.schedule.add(wolf)
+            self.grid.place_agent(wolf, (x, y))
             current_nb_agents += 1
 
         # Create grass patches
         for x in range(self.width):
             for y in range(self.height):
-                a = GrassPatch(
+                grass = GrassPatch(
                     current_nb_agents, (x, y), self, True, grass_regrowth_time
                 )
-                self.schedule.add(a)
-                self.grid.place_agent(a, (x, y))
+                self.schedule.add(grass)
+                self.grid.place_agent(grass, (x, y))
                 current_nb_agents += 1
 
         self.datacollector = DataCollector(
@@ -142,6 +142,7 @@ class WolfSheep(Model):
         # Collect data
         self.schedule.step()
         self.datacollector.collect(self)
+        print(self.schedule._agents)
 
     def run_model(self, step_count=200):
         for _ in range(step_count):
