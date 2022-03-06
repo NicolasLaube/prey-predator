@@ -45,6 +45,7 @@ class WolfSheep(Model):
         self,
         height=20,
         width=20,
+        moore=True,
         initial_sheep=100,
         initial_wolves=50,
         sheep_reproduce=0.04,
@@ -83,38 +84,65 @@ class WolfSheep(Model):
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=True)
+
+        current_nb_agents = 0
+        # Create sheep:
+        for _ in range(initial_sheep):
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            a = Sheep(
+                current_nb_agents,
+                (x, y),
+                self,
+                moore,
+                sheep_reproduce,
+                sheep_gain_from_food,
+                6,
+            )
+            self.schedule.add(a)
+            self.grid.place_agent(a, (x, y))
+            current_nb_agents += 1
+
+        # Create wolves
+        for _ in range(initial_wolves):
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            a = Wolf(
+                current_nb_agents,
+                (x, y),
+                self,
+                moore,
+                wolf_reproduce,
+                wolf_gain_from_food,
+                6,
+            )
+            self.schedule.add(a)
+            self.grid.place_agent(a, (x, y))
+            current_nb_agents += 1
+
+        # Create grass patches
+        for x in range(self.width):
+            for y in range(self.height):
+                a = GrassPatch(
+                    current_nb_agents, (x, y), self, True, grass_regrowth_time
+                )
+                self.schedule.add(a)
+                self.grid.place_agent(a, (x, y))
+                current_nb_agents += 1
+
         self.datacollector = DataCollector(
             {
                 "Wolves": lambda m: m.schedule.get_breed_count(Wolf),
                 "Sheep": lambda m: m.schedule.get_breed_count(Sheep),
             }
         )
-
-        # Create sheep:
-        for sheep_id in range(initial_sheep):
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            Sheep(sheep_id, (x, y), self, )
-
-        # Create wolves
-        for wolf_id in range(initial_wolves):
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            Wolf(wolf_id, (x, y), self, )
-        # Create grass patches
-        for i in range(self.width):
-            for j in range(self.height):
-                GrassPatch(i * (j -1) + j, (i, j), self, True, grass_regrowth_time)
-
-    def step(self):
-        self.schedule.step()
-
-        # Collect data
         self.datacollector.collect(self)
 
-        # ... to be completed
+    def step(self):
+        # Collect data
+        self.schedule.step()
+        self.datacollector.collect(self)
 
     def run_model(self, step_count=200):
-
-        # ... to be completed
-
+        for _ in range(step_count):
+            self.step()

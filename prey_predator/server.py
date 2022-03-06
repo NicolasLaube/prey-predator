@@ -6,51 +6,48 @@ from prey_predator.agents import Wolf, Sheep, GrassPatch
 from prey_predator.model import WolfSheep
 
 
+def combine_hex_values(color1, color2, proportion):
+    red = int(
+        proportion * int(color1[1:3], 16) + (1 - proportion) * int(color2[1:3], 16)
+    )
+    green = int(
+        proportion * int(color1[3:5], 16) + (1 - proportion) * int(color2[3:5], 16)
+    )
+    blue = int(
+        proportion * int(color1[5:7], 16) + (1 - proportion) * int(color2[5:7], 16)
+    )
+    zpad = lambda x: x if len(x) == 2 else "0" + x
+    return f"#{zpad(hex(red)[2:]) + zpad(hex(green)[2:]) + zpad(hex(blue)[2:])}"
+
+
 def wolf_sheep_portrayal(agent):
     if agent is None:
         return
 
     if type(agent) is Sheep:
-        return {"Shape": "circle",
-                 "Filled": "true",
-                 "r": 0.5}
-    if type(agent) is Wolf:
-        return {"Shape": "circle",
-                 "Filled": "true",
-                 "r": 0.5}
-
-    if type(agent) is GrassPatch:
         return {
-            "Shape": "rectangle",
-            "Filled": "true",
-            "Color": "green"
+            "Shape": "./prey_predator/images/sheep.png",
+            "Layer": 1,
+        }
+    if type(agent) is Wolf:
+        return {
+            "Shape": "./prey_predator/images/wolf.png",
+            "Layer": 2,
         }
 
-
-# portrayal = {"Shape": "circle",
-#                  "Filled": "true",
-#                  "r": 0.5}
-
-#     if agent.wealth > 0:
-#         portrayal["Color"] = "red"
-#         portrayal["Layer"] = 0
-#     else:
-#         portrayal["Color"] = "grey"
-#         portrayal["Layer"] = 1
-#         portrayal["r"] = 0.2
-#     return portrayal
-
-# chart = ChartModule([{"Label": "Gini",
-#                       "Color": "Black"}],
-#                     data_collector_name='datacollector')
-# grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)
-# server = ModularServer(MoneyModel,
-#                    [grid, chart],
-#                    "Money Model",
-#                    {"width":10, "height":10, "density": UserSettableParameter("slider", "Agent density", 0.8, 0.1, 1.0, 0.1)})
-# server.port = 8521 # The default
-# server.launch()
-
+    if type(agent) is GrassPatch:
+        portrayal = {
+            "Shape": "rect",
+            "Filled": "true",
+            "Layer": 0,
+            "Color": "green",
+            "w": 1,
+            "h": 1,
+        }
+        portrayal["Color"] = combine_hex_values(
+            "#2da501", "#f2ff74", 1 - agent.time_before_fully_grown / agent.countdown
+        )
+        return portrayal
 
 
 canvas_element = CanvasGrid(wolf_sheep_portrayal, 20, 20, 500, 500)
@@ -59,7 +56,17 @@ chart_element = ChartModule(
 )
 
 model_params = {
-    # ... to be completed
+    "height": 4,
+    "width": 4,
+    "moore": True,
+    "initial_sheep": 1,
+    "initial_wolves": 1,
+    "sheep_reproduce": 0.04,
+    "wolf_reproduce": 0.05,
+    "wolf_gain_from_food": 20,
+    "grass": False,
+    "grass_regrowth_time": 30,
+    "sheep_gain_from_food": 4,
 }
 
 server = ModularServer(
