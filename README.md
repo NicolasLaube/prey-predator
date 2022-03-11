@@ -1,4 +1,4 @@
-# Prey - Predator Model
+# Modèle proie prédateur
 
 At each time step, only one action is performed by the sheep or wolves (i.e. reproduce or eat). The sheep eat grass and wolves eat sheep. We consider that sheep eat all grass available when they moved on a cell. The grass grows with a certain speed and sheep can eat it before it is fully grown (however, they get less energy by doing so). Both wolves and sheep make "smart" moves, i.e. a sheep won't go on a cell where there is a wolf and will move to the cell where is the more food. The decision of sheep or wolves to eat or to reproduce is done according to the hormones and hunger variables. After reproduction, hormones are low to prevent multiple reproductions and favour energy intake. The same is true for the hunger variable. Also, a wolf won't eat a sheep if he has an energy level higher than a certain threshold as a  wolf does not have an infinitely expandable stomach. We considered that this rule isn't essential in the case of sheep.
 
@@ -8,55 +8,70 @@ We defined genders for sheep and wolves. Thus, we defined ram and ewe and wolves
 
 
 ## Summary
+## Résumé
 
-A simple ecological model, consisting of three agent types: wolves, sheep, and grass. The wolves and the sheep wander around the grid at random. Wolves and sheep both expend energy moving around, and replenish it by eating. Sheep eat grass, and wolves eat sheep if they end up on the same grid cell.
+![screen-gif](images/Animation3.gif)
 
-If wolves and sheep have enough energy, they reproduce, creating a new wolf or sheep (in this simplified model, only one parent is needed for reproduction). The grass on each cell regrows at a constant rate. If any wolves and sheep run out of energy, they die.
+Nous avons conçu un modèle multi-agent pour simuler un système de proies (représentées par des moutons) et prédateurs (représentés par des loups).
 
-The model is tests and demonstrates several Mesa concepts and features:
- - MultiGrid
- - Multiple agent types (wolves, sheep, grass)
- - Overlay arbitrary text (wolf's energy) on agent's shapes while drawing on CanvasGrid
- - Agents inheriting a behavior (random movement) from an abstract parent
- - Writing a model composed of multiple files.
- - Dynamically adding and removing agents from the schedule
+L'objectif de ce modèle est d'observer des mécanismes de régulation pouvant se mettre en place, notamment
 
-## Installation
+- Si le système peut s'équilibrer, le nombre de proies ou de prédateurs ne chutant jamais à 0
+- Si les proies meurent en l'absence de prédateurs (en épuisant toutes les ressources)
 
-To install the dependencies use pip and the requirements.txt in this directory. e.g.
+## Paramètres de la simulation
 
-```
-    $ pip install -r requirements.txt
-```
+Nous avons modifié sensiblement les agents:
 
-## How to Run
+- Les moutons et les loups ont maintenant un **sexe**, et ils doivent trouver un partenaire du sexe opposé pour s'accoupler.
+- Les moutons et les loups ont un **âge** : ils prennent un certain temps à atteindre l'âge adulte, et plus ils sont vieux et plus ils ont de chance de mourir de maladie ou de vieillesse.
+- Les loups et les moutons **se dirigent intelligemment** en regardant le contenu des cases à côté d'eux à tout instant.
+- Les loups ont une notion de **faim** ; les loups et les moutons ont une notion d'**hormones**. Celles-ci influent leur comportement, pour que par exemple un animal ne s'étant pas accouplé depuis longtemps cherche avant tout un partenaire (par rapport à la nourriture), et inversement.
+- Les moutons peuvent **manger l'herbe même si elle n'a pas entièrement poussé**. Dans ce cas, ils ne récupèreront qu'une partie de l'énergie d'une herbe qui a fini de pousser.
 
-To run the model interactively, run ``mesa runserver`` in this directory. e.g.
+## Implémentation
 
-```
-    $ mesa runserver
-```
+La structure de fichiers n'a pas changé.
 
-Then open your browser to [http://127.0.0.1:8521/](http://127.0.0.1:8521/) and press Reset, then Run.
+Les différentes actions possibles des agents ont par contre été séparées dans différentes méthodes, notamment pour les moutons et les loups:
 
-## Files
+- La méthode _step_ est la méthode principale d'update. Elle appelle les actions possibles.
+- La méthode _choose_move_ permet aux individus de choisir la case pour le prochain déplacement.
+- La méthode _reproduce_, couplée avec la méthode _can_reproduce_with_, leur permettent de se reproduire.
+- La méthode _update_energy_ leur permet de manger.
 
-* ``prey_predator/random_walker.py``: This defines the ``RandomWalker`` agent, which implements the behavior of moving randomly across a grid, one cell at a time. Both the Wolf and Sheep agents will inherit from it.
-* ``prey_predator/agents.py``: Defines the Wolf, Sheep, and GrassPatch agent classes.
-* ``prey_predator/schedule.py``: Defines a custom variant on the RandomActivation scheduler, where all agents of one class are activated (in random order) before the next class goes -- e.g. all the wolves go, then all the sheep, then all the grass.
-* ``prey_predator/model.py``: Defines the Prey-Predator model itself
-* ``prey_predator/server.py``: Sets up the interactive visualization server
-* ``run.py``: Launches a model visualization server.
+## Affichage
 
 ## Results
 
 ![screen-gif](images/Animation3.gif)
 
 ## Further Reading
+Nous avons choisi de représenter les différents agents à l'aide des images suivantes:
 
-This model is closely based on the NetLogo Wolf-Sheep Predation Model:
+- Les loups\
+   ![Wolf male](./images/agents/wolf.png)
+- Les louves\
+   ![Wolf female](./images/agents/shewolf.png)
+- Les béliers\
+   ![Sheep male](./images/agents/belier.png)
+- Les brebis\
+   ![Sheep female](./images/agents/sheep.png)
+- L'herbe (haute à gauche, broutée à droite)\
+   ![Grass](./images/agents/grass.png)
 
-Wilensky, U. (1997). NetLogo Wolf Sheep Predation model. http://ccl.northwestern.edu/netlogo/models/WolfSheepPredation. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+Les petits des loups et des moutons sont juste représentés de taille moins grande que les adultes.\
+![Cubs](./images/agents/cubs.png)
 
-See also the [Lotka–Volterra equations
-](https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations) for an example of a classic differential-equation model with similar dynamics.
+Sur l'affichage, nous pouvons voir les éléments suivants:
+
+- La **barre supérieure** présentant le modèle et permettant de le démarrer, de le stopper et de le mettre à zéro
+- La **grille** avec les agents
+- Les **paramètres du modèles**, que l'on peut modifier
+- Un **graph** présentant la répartition des loups et des moutons au cours du temps
+
+![Screen](./images/full_screen.png)
+
+#
+
+## Résultats
