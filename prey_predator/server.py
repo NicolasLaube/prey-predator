@@ -1,5 +1,6 @@
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import CanvasGrid, ChartModule
+from mesa.visualization.UserParam import UserSettableParameter
 
 from prey_predator.agents import Wolf, Sheep, GrassPatch
 from prey_predator.model import WolfSheep
@@ -29,26 +30,26 @@ def wolf_sheep_portrayal(agent):
             return {
                 "Shape": "./prey_predator/images/sheep.png",
                 "Layer": 1,
-                "scale": 0.7 * min(1, agent.age / 10) + 0.3
+                "scale": 0.7 * min(1, agent.age / 10) + 0.3,
             }
         else:
             return {
                 "Shape": "./prey_predator/images/belier.png",
                 "Layer": 1,
-                "scale": 0.7 * min(1, agent.age / 10) + 0.3
+                "scale": 0.7 * min(1, agent.age / 10) + 0.3,
             }
     if type(agent) is Wolf:
         if agent.sex == Sex.Male:
             return {
                 "Shape": "./prey_predator/images/wolf.png",
                 "Layer": 2,
-                "scale": 0.7 * min(1, agent.age / 10)
+                "scale": 0.7 * min(1, agent.age / 10),
             }
         else:
             return {
                 "Shape": "./prey_predator/images/shewolf.png",
                 "Layer": 2,
-                "scale": 0.7 * min(1, agent.age / 10)
+                "scale": 0.7 * min(1, agent.age / 10),
             }
 
     if type(agent) is GrassPatch:
@@ -60,9 +61,7 @@ def wolf_sheep_portrayal(agent):
             "w": 1,
             "h": 1,
         }
-        portrayal["Color"] = combine_hex_values(
-            "#2da501", "#e1ad01", agent.fully_grown
-        )
+        portrayal["Color"] = combine_hex_values("#2da501", "#e1ad01", agent.fully_grown)
         return portrayal
 
 
@@ -75,14 +74,33 @@ model_params = {
     "height": 30,
     "width": 30,
     "moore": True,
-    "initial_sheep": 80,
-    "initial_wolves": 50,
-    "sheep_reproduce": 0.08,
-    "wolf_reproduce": 0.03,
-    "wolf_gain_from_food": 20,
-    "grass": False,
-    "grass_regrowth_time": 30,
-    "sheep_gain_from_food": 4,
+    "initial_sheep": UserSettableParameter(
+        "slider", "Initial nb of sheep", 80, 0, 300, 1
+    ),
+    "initial_wolves": UserSettableParameter(
+        "slider", "Initial nb of wolves", 40, 0, 200, 1
+    ),
+    "sheep_reproduce": UserSettableParameter(
+        "slider", "Sheep reproduction rate", 0.25, 0, 0.5, 0.01
+    ),
+    "wolf_reproduce": UserSettableParameter(
+        "slider", "Wolves reproduction rate", 0.03, 0, 0.25, 0.01
+    ),
+    "sheep_gain_from_food": UserSettableParameter(
+        "slider", "Sheep gain from food", 4, 0, 50, 1
+    ),
+    "wolf_gain_from_food": UserSettableParameter(
+        "slider", "Wolves gain from food", 20, 0, 100, 1
+    ),
+    "sheep_initial_energy": UserSettableParameter(
+        "slider", "Initial energy of sheeps", 6, 0, 50, 1
+    ),
+    "wolves_initial_energy": UserSettableParameter(
+        "slider", "Initial energy of wolves", 6, 0, 50, 1
+    ),
+    "grass_regrowth_time": UserSettableParameter(
+        "slider", "Grass regrowth time", 30, 0, 200, 1
+    ),
 }
 
 server = ModularServer(
