@@ -8,13 +8,14 @@ Replication of the model found in NetLogo:
     Center for Connected Learning and Computer-Based Modeling,
     Northwestern University, Evanston, IL.
 """
-
+import random
 from mesa import Model
 from mesa.space import MultiGrid
 from mesa.datacollection import DataCollector
 
 from prey_predator.agents import Sheep, Wolf, GrassPatch
 from prey_predator.schedule import RandomActivationByBreed
+from prey_predator.utils import Sex
 
 
 class WolfSheep(Model):
@@ -22,20 +23,20 @@ class WolfSheep(Model):
     Wolf-Sheep Predation Model
     """
 
-    height = 20
-    width = 20
+    # height = 20
+    # width = 20
 
-    initial_sheep = 100
-    initial_wolves = 50
+    # initial_sheep = 100
+    # initial_wolves = 50
 
-    sheep_reproduce = 0.04
-    wolf_reproduce = 0.05
+    # sheep_reproduce = 0.04
+    # wolf_reproduce = 0.05
 
-    wolf_gain_from_food = 20
+    # wolf_gain_from_food = 20
 
-    grass = False
-    grass_regrowth_time = 30
-    sheep_gain_from_food = 4
+    # grass = False
+    # grass_regrowth_time = 30
+    # sheep_gain_from_food = 4
 
     description = (
         "A model for simulating wolf and sheep (predator-prey) ecosystem modelling."
@@ -45,6 +46,7 @@ class WolfSheep(Model):
         self,
         height=20,
         width=20,
+        moore=True,
         initial_sheep=100,
         initial_wolves=50,
         sheep_reproduce=0.04,
@@ -83,31 +85,73 @@ class WolfSheep(Model):
 
         self.schedule = RandomActivationByBreed(self)
         self.grid = MultiGrid(self.height, self.width, torus=True)
+
+
+        self.current_nb_agents = 0
+        # Create sheep:
+        for _ in range(initial_sheep):
+            x, y = self.grid.find_empty()
+            size = random.random() * 0.5 + 0.5
+            sex = Sex.Male if bool(random.getrandbits(1)) else Sex.Female
+
+            sheep = Sheep(
+                self.current_nb_agents,
+                (x, y),
+                self,
+                moore,
+                sheep_reproduce,
+                sheep_gain_from_food,
+                6,
+                size,
+                sex
+            )
+            self.schedule.add(sheep)
+            self.grid.place_agent(sheep, (x, y))
+            self.current_nb_agents += 1
+
+        # Create wolves
+        for _ in range(initial_wolves):
+            x, y = self.grid.find_empty()
+            size = random.random() * 0.5 + 0.5
+            sex = Sex.Male if bool(random.getrandbits(1)) else Sex.Female
+            wolf = Wolf(
+                self.current_nb_agents,
+                (x, y),
+                self,
+                moore,
+                wolf_reproduce,
+                wolf_gain_from_food,
+                6,
+                size,
+                sex
+            )
+            self.schedule.add(wolf)
+            self.grid.place_agent(wolf, (x, y))
+            self.current_nb_agents += 1
+
+        # Create grass patches
+        for x in range(self.width):
+            for y in range(self.height):
+                grass = GrassPatch(
+                    self.current_nb_agents, (x, y), self, True, grass_regrowth_time
+                )
+                self.schedule.add(grass)
+                self.grid.place_agent(grass, (x, y))
+                self.current_nb_agents += 1
+
         self.datacollector = DataCollector(
             {
                 "Wolves": lambda m: m.schedule.get_breed_count(Wolf),
                 "Sheep": lambda m: m.schedule.get_breed_count(Sheep),
             }
         )
-
-        # Create sheep:
-        # ... to be completed
-
-        # Create wolves
-        # ... to be completed
-
-        # Create grass patches
-        # ... to be completed
-
-    def step(self):
-        self.schedule.step()
-
-        # Collect data
         self.datacollector.collect(self)
 
-        # ... to be completed
+    def step(self):
+        # Collect data
+        self.schedule.step()
+        self.datacollector.collect(self)
 
     def run_model(self, step_count=200):
-
-        # ... to be completed
-
+        for _ in range(step_count):
+            self.step()
