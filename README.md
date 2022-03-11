@@ -48,9 +48,13 @@ Les différentes actions possibles des agents ont par contre été séparées da
 
 ![screen-gif](images/Animation3.gif)
 
+Nous avons effectué plusieurs expérience afin de trouver l'ensemble de paramètres résultant en un équilibre des populations de moutons et de loups. La grille, i.e. l'environnement de simulation, utilisé a une taille de 30x30. Nous initialisons alétaoirement la grille en y plaçant 80 moutons et 40 loups. Le taux de reproduction des moutons est considéré plus élévé chez les moutons que chez les loups avec 0.25 contre 0.03 respetcivement. Lorsque l'herbe est mangée par les moutons, elle prend 30 étapes pour repousser complètement et offre un énergie totale de 4 points lorsqu'elle est à son maximum. Moutons et loups commencent avec une énergie totale de 6 points et perdent un point d'énergie par étape. Un loup qui mange un mouton en retire 20 points d'énergie et ne mangera plus de moutons jusqu'à avoir atteint un minimum d'énergie de 10 points. Les loups et moutons sont considérés comme adultes (et peuvent donc se reproduire) à partir de 5 unités de temps. La longétivité maximale d'un mouton et loup est de 200 unités de temps. A partir de 100 unités de temps, les loups et moutons peuvent attraper des maladies et en mourir avec une probabilité $\frac{1}{200- age}$.
+
 
 Nous remarquons qu'il y a une forte variation de population au début de la simulation qui est probablement due au positionnement aléatoire des individus sur la grille. Ensuite, on remarque une stabilisation approximative du nombre de loups/louves et une forte croissance du nombre de moutons jusqu'à un pic. Cela parait cohérent puisque le nombre de ressources, i.e. d'herbe, est limité. La décroissance du nombre de moutons s'accompagne une augmentation de la population de loups. Nous pouvons remarquer que le maximum du nombre de loups coïncide avec le minimum de population de moutons. La suite de la simulation semble montrer une périodicité dans ce pattern. 
 Nous avons donc bien réussi à modéliser le système à l'équilibre. 
+
+Nous avons également simulé la disparition d'une des deux espèces. Dans le cas où il n'y a plus de moutons, la population de loup disparait bien après quelques itérations puisqu'ils n'ont plus rien à manger. Dans le cas de la disparation des loups, nous observons une variation sinusoïdale de la population de moutons. 
 
 ## Further Reading
 Nous avons choisi de représenter les différents agents à l'aide des images suivantes:
