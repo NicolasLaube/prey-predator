@@ -29,26 +29,26 @@ def wolf_sheep_portrayal(agent):
             return {
                 "Shape": "./prey_predator/images/sheep.png",
                 "Layer": 1,
-                "scale": agent.size
+                "scale": 0.7 * min(1, agent.age / 10) + 0.3
             }
         else:
             return {
                 "Shape": "./prey_predator/images/belier.png",
                 "Layer": 1,
-                "scale": agent.size
+                "scale": 0.7 * min(1, agent.age / 10) + 0.3
             }
     if type(agent) is Wolf:
         if agent.sex == Sex.Male:
             return {
                 "Shape": "./prey_predator/images/wolf.png",
                 "Layer": 2,
-                "scale": agent.size
+                "scale": 0.7 * min(1, agent.age / 10)
             }
         else:
             return {
                 "Shape": "./prey_predator/images/shewolf.png",
                 "Layer": 2,
-                "scale": agent.size
+                "scale": 0.7 * min(1, agent.age / 10)
             }
 
     if type(agent) is GrassPatch:
@@ -76,7 +76,7 @@ model_params = {
     "width": 30,
     "moore": True,
     "initial_sheep": 80,
-    "initial_wolves": 40,
+    "initial_wolves": 50,
     "sheep_reproduce": 0.08,
     "wolf_reproduce": 0.03,
     "wolf_gain_from_food": 20,

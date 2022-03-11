@@ -3,6 +3,7 @@ import random
 from mesa import Agent, Model
 from prey_predator.random_walk import RandomWalker
 from prey_predator.utils import Sex
+from prey_predator import config
 
 class Sheep(RandomWalker):
     """
@@ -22,7 +23,7 @@ class Sheep(RandomWalker):
         reproduction_probability,
         gain_from_food,
         energy,
-        size,
+        age,
         sex
     ):
         super().__init__(unique_id, pos, model, moore=moore)
@@ -34,7 +35,7 @@ class Sheep(RandomWalker):
         self.model = model
         self.moore = moore
 
-        self.size = size
+        self.age = age
         self.sex = sex
         self.hormones: float = 0
 
@@ -43,24 +44,41 @@ class Sheep(RandomWalker):
         A model step. Move, then eat grass and reproduce.
         """
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
+        is_dead = self.die_from_age_or_illness()
 
-        if self.has_grown_up_sheep(cellmates):
-            if self.random.random() <= self.reproduction_probability:
-                self.reproduce()
-                self.random_move()
+        if not is_dead:
+
+            if self.has_grown_up_sheep(cellmates):
+                if self.random.random() <= self.reproduction_probability:
+                    self.reproduce()
+                    self.random_move()
+                else:
+                    self.choose_move()
             else:
                 self.choose_move()
-        else:
-            self.choose_move()
-        self.update_energy()
-        self.hormones += 0.1
+            self.update_energy()
+            self.hormones += 0.1
 
     def has_grown_up_sheep(self, cellmates) -> bool:
         """Says if cell contains other wolves"""
         for cellmate in cellmates:
-            if type(cellmate) is Sheep and cellmate.unique_id != self.unique_id and cellmate.size == 1 and cellmate.sex != self.sex:
+            if type(cellmate) is Sheep and cellmate.unique_id != self.unique_id and cellmate.age >= config.SHEEP_ADULT_AGE and cellmate.sex != self.sex:
                 return True
         return False
+
+
+    def die_from_age_or_illness(self):
+        """Dies from age or illness"""
+        if self.age > config.SHEEP_MAX_AGE:
+            self.model.grid.remove_agent(self)
+            self.model.schedule.remove(self)
+            return True
+        if self.age > config.SHEEP_CAN_BECOME_ILL_FROM and random.randint(0, config.SHEEP_MAX_AGE - self.age) == 0:
+            self.model.grid.remove_agent(self)
+            self.model.schedule.remove(self)
+            return True
+        return False
+
 
     
     def choose_move(self):
@@ -81,7 +99,7 @@ class Sheep(RandomWalker):
                 if self.can_reproduce_with(agent):
                     cell_score += self.hormones
 
-                elif type(agent) is GrassPatch and self.energy < 10:
+                elif type(agent) is GrassPatch and self.energy < config.SHEEP_HUNGER_ENERGY:
                     cell_score += agent.fully_grown
 
             if add_cell:
@@ -93,7 +111,7 @@ class Sheep(RandomWalker):
 
     def is_adult(self):
         """Is the sheep adult?"""
-        return self.size == 1
+        return self.age >= 5
     
     def can_reproduce_with(self, agent):
         """Can the sheep reproduce with the other agent?"""
@@ -121,8 +139,8 @@ class Sheep(RandomWalker):
             self.moore,
             self.reproduction_probability,
             self.gain_from_food,
-            energy=6,
-            size=0.5,
+            energy=config.SHEEP_INITIAL_ENERGY,
+            age=0,
             sex=sex
         )
         self.model.schedule.add(sheep_cub)
@@ -133,7 +151,7 @@ class Sheep(RandomWalker):
 
     def update_energy(self):
         """Sheep energy update"""
-        self.size = min(self.size + 0.1, 1)
+        self.age += 1
 
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
 
@@ -166,7 +184,7 @@ class Wolf(RandomWalker):
         reproduction_probability,
         gain_from_food,
         energy,
-        size,
+        age,
         sex
     ):
         super().__init__(unique_id, pos, model, moore=moore)
@@ -177,7 +195,7 @@ class Wolf(RandomWalker):
         self.model = model
         self.pos = pos
         self.moore = moore
-        self.size = size
+        self.age = age
 
         self.hunger = 1
         self.hormones = 1
@@ -185,27 +203,41 @@ class Wolf(RandomWalker):
 
     def step(self):
         self.choose_move()
-        
-        cellmates = self.model.grid.get_cell_list_contents([self.pos])
 
-        if self.has_other_grown_up_wolf(cellmates):
-            # reproduce with certain probability or move
-            if self.random.random() <= self.reproduction_probability:
-                self.reproduce()
-                self.random_move()
+        if not self.die_from_age_or_illness():
+        
+            cellmates = self.model.grid.get_cell_list_contents([self.pos])
+
+            if self.has_other_grown_up_wolf(cellmates):
+                # reproduce with certain probability or move
+                if self.random.random() <= self.reproduction_probability:
+                    self.reproduce()
+                    self.random_move()
+                else:
+                    self.choose_move()
+                    self.hormones += 0.1
             else:
                 self.choose_move()
-                self.hormones += 1
-        else:
-            self.choose_move()
-            self.hormones += 1
+                self.hormones += 0.1
 
-        self.update_energy(cellmates)
+            self.update_energy(cellmates)
+
+    def die_from_age_or_illness(self):
+        """Dies from age or illness"""
+        if self.age > config.WOLF_MAX_AGE:
+            self.model.grid.remove_agent(self)
+            self.model.schedule.remove(self)
+            return True
+        if self.age > config.WOLF_CAN_BECOME_ILL_FROM and random.randint(0, config.WOLF_MAX_AGE - self.age) == 0:
+            self.model.grid.remove_agent(self)
+            self.model.schedule.remove(self)
+            return True
+        return False
 
     def has_other_grown_up_wolf(self, cellmates) -> bool:
         """Says if cell contains other wolves"""
         for cellmate in cellmates:
-            if type(cellmate) is Wolf and cellmate.unique_id != self.unique_id and cellmate.size == 1 and self.sex != cellmate.sex:
+            if type(cellmate) is Wolf and cellmate.unique_id != self.unique_id and cellmate.age >= config.WOLF_ADULT_AGE and self.sex != cellmate.sex:
                 return True
         return False
             
@@ -213,8 +245,7 @@ class Wolf(RandomWalker):
 
     def update_energy(self, cellmates):
         """Update energy"""
-        self.size = min(self.size + 0.1, 1)
-
+        self.age += 1
 
         ate_something = False
         for cellmate in cellmates:
@@ -249,10 +280,10 @@ class Wolf(RandomWalker):
             cell_score = 0
 
             for agent in cell_agents:
-                if type(agent) is Wolf and agent.unique_id != self.unique_id and agent.size == 1 and self.sex != agent.sex:
+                if type(agent) is Wolf and agent.unique_id != self.unique_id and agent.age >= config.WOLF_ADULT_AGE and self.sex != agent.sex:
                     cell_score += self.hormones
                 if type(agent) is Sheep and self.energy < 10:
-                    cell_score += self.hunger * agent.size
+                    cell_score += self.hunger * agent.age
             candidate_cells.append((cell_pos, cell_score))
 
         random.shuffle(candidate_cells)
@@ -265,7 +296,6 @@ class Wolf(RandomWalker):
         self.model.current_nb_agents += 1
         sex = Sex.Male if bool(random.getrandbits(1)) else Sex.Female
 
-
         wolf_cub = Wolf(
             self.model.current_nb_agents,
             self.pos,
@@ -273,13 +303,13 @@ class Wolf(RandomWalker):
             self.moore,
             self.reproduction_probability,
             self.gain_from_food,
-            energy=6,
-            size=0.5,
+            energy=config.WOLF_INITIAL_ENERGY,
+            age=0,
             sex=sex
         )
         self.model.schedule.add(wolf_cub)
         self.model.grid.place_agent(wolf_cub, self.pos)
-        self.hormones = -3
+        self.hormones = 0
         self.energy -= 1
         print(f"Wolf cub born, id={self.model.current_nb_agents}")
 
@@ -304,7 +334,7 @@ class GrassPatch(Agent):
         Args:
             grown: (boolean) Whether the patch of grass is fully grown or not
             countdown: Time for the patch of grass to be fully grown again
-            fully_grown: between 0 and 1 (represents size of grass)
+            fully_grown: between 0 and 1 (represents age of grass)
         """
         super().__init__(unique_id, model)
         self.unique_id = unique_id
