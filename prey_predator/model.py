@@ -23,20 +23,20 @@ class WolfSheep(Model):
     Wolf-Sheep Predation Model
     """
 
-    height = 20
-    width = 20
+    # height = 20
+    # width = 20
 
-    initial_sheep = 100
-    initial_wolves = 50
+    # initial_sheep = 100
+    # initial_wolves = 50
 
-    sheep_reproduce = 0.04
-    wolf_reproduce = 0.05
+    # sheep_reproduce = 0.04
+    # wolf_reproduce = 0.05
 
-    wolf_gain_from_food = 20
+    # wolf_gain_from_food = 20
 
-    grass = False
-    grass_regrowth_time = 30
-    sheep_gain_from_food = 4
+    # grass = False
+    # grass_regrowth_time = 30
+    # sheep_gain_from_food = 4
 
     description = (
         "A model for simulating wolf and sheep (predator-prey) ecosystem modelling."

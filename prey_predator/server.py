@@ -25,11 +25,18 @@ def wolf_sheep_portrayal(agent):
         return
 
     if type(agent) is Sheep:
-        return {
-            "Shape": "./prey_predator/images/sheep.png",
-            "Layer": 1,
-            "scale": agent.size
-        }
+        if agent.sex == Sex.Female:
+            return {
+                "Shape": "./prey_predator/images/sheep.png",
+                "Layer": 1,
+                "scale": agent.size
+            }
+        else:
+            return {
+                "Shape": "./prey_predator/images/belier.png",
+                "Layer": 1,
+                "scale": agent.size
+            }
     if type(agent) is Wolf:
         if agent.sex == Sex.Male:
             return {
@@ -59,18 +66,18 @@ def wolf_sheep_portrayal(agent):
         return portrayal
 
 
-canvas_element = CanvasGrid(wolf_sheep_portrayal, 20, 20, 500, 500)
+canvas_element = CanvasGrid(wolf_sheep_portrayal, 30, 30, 500, 500)
 chart_element = ChartModule(
     [{"Label": "Wolves", "Color": "#AA0000"}, {"Label": "Sheep", "Color": "#666666"}]
 )
 
 model_params = {
-    "height": 20,
-    "width": 20,
+    "height": 30,
+    "width": 30,
     "moore": True,
-    "initial_sheep": 100,
-    "initial_wolves": 50,
-    "sheep_reproduce": 0.8,
+    "initial_sheep": 80,
+    "initial_wolves": 40,
+    "sheep_reproduce": 0.08,
     "wolf_reproduce": 0.03,
     "wolf_gain_from_food": 20,
     "grass": False,

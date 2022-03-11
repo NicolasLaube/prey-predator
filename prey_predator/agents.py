@@ -36,6 +36,7 @@ class Sheep(RandomWalker):
 
         self.size = size
         self.sex = sex
+        self.hormones: float = 0
 
     def step(self):
         """
@@ -46,16 +47,18 @@ class Sheep(RandomWalker):
         if self.has_grown_up_sheep(cellmates):
             if self.random.random() <= self.reproduction_probability:
                 self.reproduce()
+                self.random_move()
             else:
                 self.choose_move()
         else:
             self.choose_move()
         self.update_energy()
+        self.hormones += 0.1
 
     def has_grown_up_sheep(self, cellmates) -> bool:
         """Says if cell contains other wolves"""
         for cellmate in cellmates:
-            if type(cellmate) is Sheep and cellmate.unique_id != self.unique_id and cellmate.size == 1:
+            if type(cellmate) is Sheep and cellmate.unique_id != self.unique_id and cellmate.size == 1 and cellmate.sex != self.sex:
                 return True
         return False
 
@@ -74,17 +77,36 @@ class Sheep(RandomWalker):
             for agent in cell_agents:
                 if type(agent) is Wolf:
                     add_cell = False
-                if type(agent) is Sheep and self.unique_id != self.unique_id and agent.size == 1:
-                    # condition prevents staying staying on center
-                    cell_score += 1
-                elif type(agent) is GrassPatch:
+
+                if self.can_reproduce_with(agent):
+                    cell_score += self.hormones
+
+                elif type(agent) is GrassPatch and self.energy < 10:
                     cell_score += agent.fully_grown
+
             if add_cell:
                 candidate_cells.append((cell_pos, cell_score))
         random.shuffle(candidate_cells)
         candidate_cells = sorted(candidate_cells, key=lambda x: x[1])
 
         self.model.grid.move_agent(self, candidate_cells[-1][0])
+
+    def is_adult(self):
+        """Is the sheep adult?"""
+        return self.size == 1
+    
+    def can_reproduce_with(self, agent):
+        """Can the sheep reproduce with the other agent?"""
+        if type(agent) != type(self):
+            return False
+        if self.sex == agent.sex:
+            return False
+        if not self.is_adult() or not agent.is_adult():
+            return False
+        if self.unique_id == agent.unique_id:
+            return False
+        
+        return True
     
     def reproduce(self):
         """Sheep reproduction"""
@@ -106,6 +128,7 @@ class Sheep(RandomWalker):
         self.model.schedule.add(sheep_cub)
         self.model.grid.place_agent(sheep_cub, self.pos)
         self.energy -= 1
+        self.hormones = 0
         print(f"Sheep cub born, id={self.model.current_nb_agents}")
 
     def update_energy(self):
@@ -169,6 +192,7 @@ class Wolf(RandomWalker):
             # reproduce with certain probability or move
             if self.random.random() <= self.reproduction_probability:
                 self.reproduce()
+                self.random_move()
             else:
                 self.choose_move()
                 self.hormones += 1
@@ -255,7 +279,7 @@ class Wolf(RandomWalker):
         )
         self.model.schedule.add(wolf_cub)
         self.model.grid.place_agent(wolf_cub, self.pos)
-        self.hormones = -1
+        self.hormones = -3
         self.energy -= 1
         print(f"Wolf cub born, id={self.model.current_nb_agents}")
 
