@@ -1,5 +1,12 @@
 # Prey - Predator Model
 
+At each time step, only one action is performed by the sheep or wolves (i.e. reproduce or eat). The sheep eat grass and wolves eat the latter. We consider that they eat all grass available when they moved on the cell. The grass grows with a certain speed and sheep can eat it before it is fully grown (however, they get less energy by doing so). 
+
+We defined gender for sheep and wolves. Thus, we defined ram and ewe and wolves and she-wolves. Reproduction occurs only with a certain probability when a female and male gender meet. Only one cub is obtained after reproduction. To increase realism, we added an age parameter. The born cub has an age of 0. At each time step, the age is increased by one. The age parameters is also used to fix an age limit and illness probability. The older becomes the sheep, the higher is the probability that he dies with a limit of 100 steps.
+
+
+
+
 ## Summary
 
 A simple ecological model, consisting of three agent types: wolves, sheep, and grass. The wolves and the sheep wander around the grid at random. Wolves and sheep both expend energy moving around, and replenish it by eating. Sheep eat grass, and wolves eat sheep if they end up on the same grid cell.
@@ -40,6 +47,10 @@ Then open your browser to [http://127.0.0.1:8521/](http://127.0.0.1:8521/) and p
 * ``prey_predator/model.py``: Defines the Prey-Predator model itself
 * ``prey_predator/server.py``: Sets up the interactive visualization server
 * ``run.py``: Launches a model visualization server.
+
+## Results
+
+![screen-gif](images/Animation3.gif)
 
 ## Further Reading
 
