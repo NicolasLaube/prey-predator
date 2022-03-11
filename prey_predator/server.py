@@ -30,26 +30,26 @@ def wolf_sheep_portrayal(agent):
             return {
                 "Shape": "./prey_predator/images/sheep.png",
                 "Layer": 1,
-                "scale": agent.size,
+                "scale": 0.7 * min(1, agent.age / 10) + 0.3,
             }
         else:
             return {
                 "Shape": "./prey_predator/images/belier.png",
                 "Layer": 1,
-                "scale": agent.size,
+                "scale": 0.7 * min(1, agent.age / 10) + 0.3,
             }
     if type(agent) is Wolf:
         if agent.sex == Sex.Male:
             return {
                 "Shape": "./prey_predator/images/wolf.png",
                 "Layer": 2,
-                "scale": agent.size,
+                "scale": 0.7 * min(1, agent.age / 10),
             }
         else:
             return {
                 "Shape": "./prey_predator/images/shewolf.png",
                 "Layer": 2,
-                "scale": agent.size,
+                "scale": 0.7 * min(1, agent.age / 10),
             }
 
     if type(agent) is GrassPatch:

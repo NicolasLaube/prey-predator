@@ -2,6 +2,8 @@
 
 ## Résumé
 
+![screen-gif](images/Animation3.gif)
+
 Nous avons conçu un modèle multi-agent pour simuler un système de proies (représentées par des moutons) et prédateurs (représentés par des loups).
 
 L'objectif de ce modèle est d'observer des mécanismes de régulation pouvant se mettre en place, notamment

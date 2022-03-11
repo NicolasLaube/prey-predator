@@ -93,7 +93,7 @@ class WolfSheep(Model):
         # Create sheep:
         for _ in range(initial_sheep):
             x, y = self.grid.find_empty()
-            size = random.random() * 0.5 + 0.5
+            age = random.randint(0, 10)
             sex = Sex.Male if bool(random.getrandbits(1)) else Sex.Female
 
             sheep = Sheep(
@@ -104,7 +104,7 @@ class WolfSheep(Model):
                 sheep_reproduce,
                 sheep_gain_from_food,
                 sheep_initial_energy,
-                size,
+                age,
                 sex,
             )
             self.schedule.add(sheep)
@@ -114,7 +114,7 @@ class WolfSheep(Model):
         # Create wolves
         for _ in range(initial_wolves):
             x, y = self.grid.find_empty()
-            size = random.random() * 0.5 + 0.5
+            age = random.randint(0, 10)
             sex = Sex.Male if bool(random.getrandbits(1)) else Sex.Female
             wolf = Wolf(
                 self.current_nb_agents,
@@ -123,8 +123,8 @@ class WolfSheep(Model):
                 moore,
                 wolf_reproduce,
                 wolf_gain_from_food,
-                6,
-                size,
+                wolves_initial_energy,
+                age,
                 sex,
             )
             self.schedule.add(wolf)
