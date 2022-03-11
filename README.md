@@ -77,6 +77,10 @@ Nous remarquons que le même phénomène se répète périodiquement :
 
 Nous avons également simulé la disparition d'une des deux espèces. Dans le cas où il n'y a plus de moutons, la population de loup disparait bien après quelques itérations puisqu'ils n'ont plus rien à manger. Dans le cas de la disparation des loups, nous observons une variation sinusoïdale de la population de moutons.
 
+## Améliorations
+
+De nombreuses améliorations pourraient bien sûr être ajoutées au modèle. Nous avons pensé à certaines. Tout d'abord, dans notre simulation les moutons et loups ne doivent pas se déplacer pour accéder à des sources d'eau ce qui changerait la dynamique de la simulation. Ensuite, lors de l'initialisation, l'intégralité de l'herbe est fraiche, ce qui ne représente pas bien la réalité. Enfin, une portée de louveteaux ne se réduit pas à un seul individus.
+
 ## Annexe : représentation des agents
 
 Nous avons choisi de représenter les différents agents à l'aide des images suivantes:
@@ -103,6 +107,3 @@ Sur l'affichage, nous pouvons voir les éléments suivants:
 - Un **graph** présentant la répartition des loups et des moutons au cours du temps\
   <img src="./images/full_screen.png" alt="Mesa" width="800"/>\
 
-# Amélioration
-
-De nombreuses améliorations pourraient bien sûr être ajoutées au modèle. Nous avons pensé à certaines. Tout d'abord, dans notre simulation les moutons et loups ne doivent pas se déplacer pour accéder à des sources d'eau ce qui changerait la dynamique de la simulation. Ensuite, lors de l'initialisation, l'intégralité de l'herbe est fraiche, ce qui ne représente pas bien la réalité. Enfin, une portée de louveteaux ne se réduit pas à un seul individus.
