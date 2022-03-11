@@ -1,51 +1,62 @@
-# Prey - Predator Model
+# Modèle proie prédateur
 
-## Summary
+## Résumé
 
-A simple ecological model, consisting of three agent types: wolves, sheep, and grass. The wolves and the sheep wander around the grid at random. Wolves and sheep both expend energy moving around, and replenish it by eating. Sheep eat grass, and wolves eat sheep if they end up on the same grid cell.
+Nous avons conçu un modèle multi-agent pour simuler un système de proies (représentées par des moutons) et prédateurs (représentés par des loups).
 
-If wolves and sheep have enough energy, they reproduce, creating a new wolf or sheep (in this simplified model, only one parent is needed for reproduction). The grass on each cell regrows at a constant rate. If any wolves and sheep run out of energy, they die.
+L'objectif de ce modèle est d'observer des mécanismes de régulation pouvant se mettre en place, notamment
 
-The model is tests and demonstrates several Mesa concepts and features:
- - MultiGrid
- - Multiple agent types (wolves, sheep, grass)
- - Overlay arbitrary text (wolf's energy) on agent's shapes while drawing on CanvasGrid
- - Agents inheriting a behavior (random movement) from an abstract parent
- - Writing a model composed of multiple files.
- - Dynamically adding and removing agents from the schedule
+- Si le système peut s'équilibrer, le nombre de proies ou de prédateurs ne chutant jamais à 0
+- Si les proies meurent en l'absence de prédateurs (en épuisant toutes les ressources)
 
-## Installation
+## Paramètres de la simulation
 
-To install the dependencies use pip and the requirements.txt in this directory. e.g.
+Nous avons modifié sensiblement les agents:
 
-```
-    $ pip install -r requirements.txt
-```
+- Les moutons et les loups ont maintenant un **sexe**, et ils doivent trouver un partenaire du sexe opposé pour s'accoupler.
+- Les moutons et les loups ont un **âge** : ils prennent un certain temps à atteindre l'âge adulte, et plus ils sont vieux et plus ils ont de chance de mourir de maladie ou de vieillesse.
+- Les loups et les moutons **se dirigent intelligemment** en regardant le contenu des cases à côté d'eux à tout instant.
+- Les loups ont une notion de **faim** ; les loups et les moutons ont une notion d'**hormones**. Celles-ci influent leur comportement, pour que par exemple un animal ne s'étant pas accouplé depuis longtemps cherche avant tout un partenaire (par rapport à la nourriture), et inversement.
+- Les moutons peuvent **manger l'herbe même si elle n'a pas entièrement poussé**. Dans ce cas, ils ne récupèreront qu'une partie de l'énergie d'une herbe qui a fini de pousser.
 
-## How to Run
+## Implémentation
 
-To run the model interactively, run ``mesa runserver`` in this directory. e.g.
+La structure de fichiers n'a pas changé.
 
-```
-    $ mesa runserver
-```
+Les différentes actions possibles des agents ont par contre été séparées dans différentes méthodes, notamment pour les moutons et les loups:
 
-Then open your browser to [http://127.0.0.1:8521/](http://127.0.0.1:8521/) and press Reset, then Run.
+- La méthode _step_ est la méthode principale d'update. Elle appelle les actions possibles.
+- La méthode _choose_move_ permet aux individus de choisir la case pour le prochain déplacement.
+- La méthode _reproduce_, couplée avec la méthode _can_reproduce_with_, leur permettent de se reproduire.
+- La méthode _update_energy_ leur permet de manger.
 
-## Files
+## Affichage
 
-* ``prey_predator/random_walker.py``: This defines the ``RandomWalker`` agent, which implements the behavior of moving randomly across a grid, one cell at a time. Both the Wolf and Sheep agents will inherit from it.
-* ``prey_predator/agents.py``: Defines the Wolf, Sheep, and GrassPatch agent classes.
-* ``prey_predator/schedule.py``: Defines a custom variant on the RandomActivation scheduler, where all agents of one class are activated (in random order) before the next class goes -- e.g. all the wolves go, then all the sheep, then all the grass.
-* ``prey_predator/model.py``: Defines the Prey-Predator model itself
-* ``prey_predator/server.py``: Sets up the interactive visualization server
-* ``run.py``: Launches a model visualization server.
+Nous avons choisi de représenter les différents agents à l'aide des images suivantes:
 
-## Further Reading
+- Les loups\
+   ![Wolf male](./images/agents/wolf.png)
+- Les louves\
+   ![Wolf female](./images/agents/shewolf.png)
+- Les béliers\
+   ![Sheep male](./images/agents/belier.png)
+- Les brebis\
+   ![Sheep female](./images/agents/sheep.png)
+- L'herbe (haute à gauche, broutée à droite)\
+   ![Grass](./images/agents/grass.png)
 
-This model is closely based on the NetLogo Wolf-Sheep Predation Model:
+Les petits des loups et des moutons sont juste représentés de taille moins grande que les adultes.\
+![Cubs](./images/agents/cubs.png)
 
-Wilensky, U. (1997). NetLogo Wolf Sheep Predation model. http://ccl.northwestern.edu/netlogo/models/WolfSheepPredation. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+Sur l'affichage, nous pouvons voir les éléments suivants:
 
-See also the [Lotka–Volterra equations
-](https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations) for an example of a classic differential-equation model with similar dynamics.
+- La **barre supérieure** présentant le modèle et permettant de le démarrer, de le stopper et de le mettre à zéro
+- La **grille** avec les agents
+- Les **paramètres du modèles**, que l'on peut modifier
+- Un **graph** présentant la répartition des loups et des moutons au cours du temps
+
+![Screen](./images/full_screen.png)
+
+#
+
+## Résultats
